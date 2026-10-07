@@ -12,7 +12,8 @@
     "dev": "pnpm --filter demo run dev",
     "lint": "eslint .",
     "typecheck": "pnpm -r --if-present run typecheck",
-    "test": "pnpm -r --if-present run test"
+    "test": "pnpm -r --if-present run test",
+    "checkpack": "pnpm -r --if-present run checkpack"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
