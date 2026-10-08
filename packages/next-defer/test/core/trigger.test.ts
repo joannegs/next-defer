@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { noop, observable } from '../../src/core/trigger';
-import type { TriggerImpl } from '../../src/core/interfaces/triggerImpl.interface';
+import { observable } from '../../src/core/trigger';
+import { noop, type TriggerImpl } from '../../src/core/interfaces/triggerImpl.interface';
 
 describe('noop', () => {
   it('never calls fire', () => {
