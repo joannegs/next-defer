@@ -1,36 +1,37 @@
 import { describe, expect, it, vi } from 'vitest';
-import { observable } from '../../src/core/trigger';
-import { noop, type TriggerImpl } from '../../src/core/interfaces/triggerImpl.interface';
+import { elementObservable } from '../../../src/core/utils/trigger';
+import type { TriggerInterface } from '../../../src/core/interfaces/trigger.interface';
+import { neverFired } from '../../../src/core/constants/trigger.constants';
 
-describe('noop', () => {
+describe('neverFired', () => {
   it('never calls fire', () => {
     const fire = vi.fn();
-    noop.subscribe(document.createElement('div'), fire);
+    neverFired.triggerSubscribe(document.createElement('div'), fire);
     expect(fire).not.toHaveBeenCalled();
   });
 
   it('returns a cleanup function that does nothing', () => {
-    const cleanup = noop.subscribe(document.createElement('div'), vi.fn());
+    const cleanup = neverFired.triggerSubscribe(document.createElement('div'), vi.fn());
     expect(() => cleanup()).not.toThrow();
   });
 
-  it('satisfies the TriggerImpl contract', () => {
-    const trigger: TriggerImpl = noop;
-    expect(typeof trigger.subscribe).toBe('function');
+  it('satisfies the TriggerInterface contract', () => {
+    const trigger: TriggerInterface = neverFired;
+    expect(typeof trigger.triggerSubscribe).toBe('function');
   });
 });
 
-describe('observable', () => {
+describe('elementObservable', () => {
   it('sets display: contents on the element before observing', () => {
     const element = document.createElement('div');
     let seenDisplay: string | undefined;
 
-    const trigger = observable((el) => {
+    const trigger = elementObservable((el: HTMLElement) => {
       seenDisplay = el.style.display;
       return () => {};
     });
 
-    trigger.subscribe(element, vi.fn());
+    trigger.triggerSubscribe(element, vi.fn());
 
     expect(element.style.display).toBe('contents');
     expect(seenDisplay).toBe('contents');
@@ -41,17 +42,17 @@ describe('observable', () => {
     const fire = vi.fn();
     const observe = vi.fn(() => () => {});
 
-    const trigger = observable(observe);
-    trigger.subscribe(element, fire);
+    const trigger = elementObservable(observe);
+    trigger.triggerSubscribe(element, fire);
 
     expect(observe).toHaveBeenCalledWith(element, fire);
   });
 
   it('forwards the cleanup function returned by observe', () => {
     const cleanup = vi.fn();
-    const trigger = observable(() => cleanup);
+    const trigger = elementObservable(() => cleanup);
 
-    const returnedCleanup = trigger.subscribe(document.createElement('div'), vi.fn());
+    const returnedCleanup = trigger.triggerSubscribe(document.createElement('div'), vi.fn());
     returnedCleanup();
 
     expect(cleanup).toHaveBeenCalledOnce();
@@ -59,12 +60,12 @@ describe('observable', () => {
 
   it('calls fire when observe invokes it', () => {
     const fire = vi.fn();
-    const trigger = observable((_el, f) => {
+    const trigger = elementObservable((_el: HTMLElement, f: () => void) => {
       f();
       return () => {};
     });
 
-    trigger.subscribe(document.createElement('div'), fire);
+    trigger.triggerSubscribe(document.createElement('div'), fire);
     expect(fire).toHaveBeenCalledOnce();
   });
 });

@@ -10,25 +10,20 @@ describe('timer', () => {
     vi.useRealTimers();
   });
 
-  it('does not fire before the delay elapses', () => {
+  it('fires exactly when the delay elapses (number, ms)', () => {
     const fire = vi.fn();
-    timer(1000).subscribe(document.createElement('div'), fire);
+    timer(1000).triggerSubscribe(document.createElement('div'), fire);
 
     vi.advanceTimersByTime(999);
     expect(fire).not.toHaveBeenCalled();
-  });
 
-  it('fires once the delay elapses (number, ms)', () => {
-    const fire = vi.fn();
-    timer(1000).subscribe(document.createElement('div'), fire);
-
-    vi.advanceTimersByTime(1000);
+    vi.advanceTimersByTime(1);
     expect(fire).toHaveBeenCalledOnce();
   });
 
   it('accepts a duration string ("2s")', () => {
     const fire = vi.fn();
-    timer('2s').subscribe(document.createElement('div'), fire);
+    timer('2s').triggerSubscribe(document.createElement('div'), fire);
 
     vi.advanceTimersByTime(1999);
     expect(fire).not.toHaveBeenCalled();
@@ -39,7 +34,7 @@ describe('timer', () => {
 
   it('cancels the pending timer when the cleanup function runs', () => {
     const fire = vi.fn();
-    const cleanup = timer(1000).subscribe(document.createElement('div'), fire);
+    const cleanup = timer(1000).triggerSubscribe(document.createElement('div'), fire);
 
     cleanup();
     vi.advanceTimersByTime(10_000);
@@ -49,7 +44,7 @@ describe('timer', () => {
 
   it('cleanup is safe to call again after firing', () => {
     const fire = vi.fn();
-    const cleanup = timer(1000).subscribe(document.createElement('div'), fire);
+    const cleanup = timer(1000).triggerSubscribe(document.createElement('div'), fire);
 
     vi.advanceTimersByTime(1000);
     expect(() => cleanup()).not.toThrow();
@@ -59,14 +54,14 @@ describe('timer', () => {
     expect(() => timer('not-a-duration')).toThrow(TypeError);
   });
 
-  it('creates an independent timer for each subscribe call', () => {
+  it('creates an independent timer for each triggerSubscribe call', () => {
     const trigger = timer(1000);
     const fireA = vi.fn();
     const fireB = vi.fn();
 
-    trigger.subscribe(document.createElement('div'), fireA);
+    trigger.triggerSubscribe(document.createElement('div'), fireA);
     vi.advanceTimersByTime(500);
-    trigger.subscribe(document.createElement('div'), fireB);
+    trigger.triggerSubscribe(document.createElement('div'), fireB);
     vi.advanceTimersByTime(500);
 
     expect(fireA).toHaveBeenCalledOnce();

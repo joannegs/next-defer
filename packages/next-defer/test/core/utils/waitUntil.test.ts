@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { waitUntil } from '../../src/core/waitUntil';
+import { waitUntil } from '../../../src/core/utils/waitUntil';
 
 describe('waitUntil', () => {
   beforeEach(() => {
@@ -11,7 +11,7 @@ describe('waitUntil', () => {
     vi.useRealTimers();
   });
 
-  it('does not resolve before the target instant', async () => {
+  it('resolves exactly when the target instant (number) is reached', async () => {
     let resolved = false;
     void waitUntil(Date.now() + 1000).then(() => {
       resolved = true;
@@ -19,15 +19,8 @@ describe('waitUntil', () => {
 
     await vi.advanceTimersByTimeAsync(999);
     expect(resolved).toBe(false);
-  });
 
-  it('resolves exactly when the target instant (number) is reached', async () => {
-    let resolved = false;
-    void waitUntil(Date.now() + 1000).then(() => {
-      resolved = true;
-    });
-
-    await vi.advanceTimersByTimeAsync(1000);
+    await vi.advanceTimersByTimeAsync(1);
     expect(resolved).toBe(true);
   });
 

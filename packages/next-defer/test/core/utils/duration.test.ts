@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseDuration } from '../../src/core/duration';
+import { parseDuration } from '../../../src/core/utils/duration';
 
 describe('parseDuration', () => {
   describe('valid formats', () => {
