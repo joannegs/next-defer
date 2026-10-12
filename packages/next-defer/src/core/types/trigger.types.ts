@@ -1,7 +1,7 @@
 import { Duration } from "./duration.types";
 
-export type ElementRef = { 
-  readonly current: Element | null 
+export type ElementRef = {
+  readonly current: HTMLElement | null;
 };
 
 export type Trigger =
