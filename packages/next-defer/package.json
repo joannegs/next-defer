@@ -1,6 +1,6 @@
 {
   "name": "next-defer",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Componente <Defer> para Next.js que decide declarativamente quando o JavaScript de um componente é baixado e exibido.",
   "license": "MIT",
   "type": "module",
@@ -57,10 +57,11 @@
       "optional": true
     }
   },
-  "dependencies": {},
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@size-limit/file": "^14.2.0",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
     "@types/node": "^26.6.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
