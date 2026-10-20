@@ -7,7 +7,7 @@ import type { DeferState, LoadResult } from './types/useDefer.types';
 import type { UseDeferOptions, UseDeferResult } from './interfaces/useDefer.interface';
 
 export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {}): UseDeferResult {
-  const { on } = options;
+  const { on, prefetch } = options;
   const ref = useRef<HTMLElement | null>(null);
   const [triggered, setTriggered] = useState(false);
   const [result, setResult] = useState<LoadResult>('pending');
@@ -16,8 +16,11 @@ export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {
 
   const triggerList = Array.isArray(on) ? on : [on];
   const key = triggerList.map((item) => triggersKey(item)).join('|');
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` is a stable stand-in for `triggerList`'s identity; depending on it directly would re-normalize on every render.
   const normalizedList = useMemo(() => triggerList.map((item) => normalize(item)), [key]);
+
+  const prefetchList = prefetch === undefined ? [] : Array.isArray(prefetch) ? prefetch : [prefetch];
+  const prefetchKey = prefetchList.map((item) => triggersKey(item)).join('|');
+  const normalizedPrefetchList = useMemo(() => prefetchList.map((item) => normalize(item)), [prefetchKey]);
 
   useEffect(() => {
     if (!ref.current) {
@@ -26,6 +29,16 @@ export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {
 
     return armTriggers(ref.current, normalizedList, () => setTriggered(true));
   }, [normalizedList]);
+
+  useEffect(() => {
+    if (!ref.current || normalizedPrefetchList.length === 0) {
+      return;
+    }
+
+    return armTriggers(ref.current, normalizedPrefetchList, () => {
+      getModule(moduleCache, load).catch(() => {});
+    });
+  }, [normalizedPrefetchList, load]);
 
   useEffect(() => {
     if (!triggered) {

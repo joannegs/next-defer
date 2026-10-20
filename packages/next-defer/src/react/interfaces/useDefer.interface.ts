@@ -10,4 +10,5 @@ export interface UseDeferResult {
 
 export interface UseDeferOptions {
   on?: Trigger | Trigger[];
+  prefetch?: Trigger | Trigger[];
 }

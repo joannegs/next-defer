@@ -4,10 +4,6 @@ import type { RefObject } from 'react';
 import { useDefer } from '../../src/react/useDefer';
 import type { Trigger } from '../../src/core/types/trigger.types';
 
-// Flushes one pending microtask inside `act`, for resolved promises whose
-// `.then` already ran but whose React state update is still queued.
-// Can't use `waitFor` here: it polls with real timers, which never
-// advance under `vi.useFakeTimers()`.
 async function flushMicrotasks() {
   await act(async () => {});
 }
@@ -18,8 +14,16 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-function Probe({ load, on }: { load: () => Promise<unknown>; on?: Trigger | Trigger[] }) {
-  const { ref, state, retry } = useDefer(load, { on });
+function Probe({
+  load,
+  on,
+  prefetch,
+}: {
+  load: () => Promise<unknown>;
+  on?: Trigger | Trigger[];
+  prefetch?: Trigger | Trigger[];
+}) {
+  const { ref, state, retry } = useDefer(load, { on, prefetch });
   return (
     <>
       <div ref={ref as RefObject<HTMLDivElement>} data-testid="target">
@@ -180,6 +184,54 @@ describe('useDefer', () => {
       fireEvent.click(getByTestId('retry'));
 
       expect(getByTestId('target').textContent).toBe('visible');
+      expect(load).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('prefetch', () => {
+    it('calls load without displaying when the prefetch trigger fires', () => {
+      const load = vi.fn(() => Promise.resolve());
+      const { getByTestId } = render(<Probe load={load} on="interaction" prefetch="hover" />);
+
+      fireEvent.mouseEnter(getByTestId('target'));
+
+      expect(load).toHaveBeenCalledOnce();
+      expect(getByTestId('target').textContent).toBe('placeholder');
+    });
+
+    it('reuses the prefetched module instead of loading again on display', async () => {
+      const load = vi.fn(() => Promise.resolve());
+      const { getByTestId } = render(<Probe load={load} on="interaction" prefetch="hover" />);
+
+      fireEvent.mouseEnter(getByTestId('target'));
+      expect(load).toHaveBeenCalledOnce();
+
+      fireEvent.click(getByTestId('target'));
+      await waitFor(() => expect(getByTestId('target').textContent).toBe('visible'));
+
+      expect(load).toHaveBeenCalledOnce();
+    });
+
+    it('does not prefetch when no prefetch option is given', () => {
+      const load = vi.fn(() => Promise.resolve());
+      const { getByTestId } = render(<Probe load={load} on="interaction" />);
+
+      fireEvent.mouseEnter(getByTestId('target'));
+
+      expect(load).not.toHaveBeenCalled();
+      expect(getByTestId('target').textContent).toBe('placeholder');
+    });
+
+    it('surfaces the error later if the prefetched load eventually fails', async () => {
+      const load = vi.fn(() => Promise.reject(new Error('boom')));
+      const { getByTestId } = render(<Probe load={load} on="interaction" prefetch="hover" />);
+
+      fireEvent.mouseEnter(getByTestId('target'));
+      expect(getByTestId('target').textContent).toBe('placeholder');
+
+      fireEvent.click(getByTestId('target'));
+      await waitFor(() => expect(getByTestId('target').textContent).toBe('error'));
+
       expect(load).toHaveBeenCalledOnce();
     });
   });
