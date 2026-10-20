@@ -1,5 +1,6 @@
 import { DeferState } from "../types/useDefer.types";
 import { Trigger } from "../../core/types/trigger.types";
+import { Duration } from "../../core/types/duration.types";
 
 export interface UseDeferResult {
   ref: React.MutableRefObject<HTMLElement | null>;
@@ -11,4 +12,8 @@ export interface UseDeferResult {
 export interface UseDeferOptions {
   on?: Trigger | Trigger[];
   prefetch?: Trigger | Trigger[];
+  loadingDelay?: Duration;
+  minPlaceholderTime?: Duration;
+  minLoadingTime?: Duration;
+  onStateChange?: (state: DeferState) => void;
 }
