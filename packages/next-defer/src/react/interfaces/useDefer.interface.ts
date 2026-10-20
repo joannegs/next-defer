@@ -1,7 +1,13 @@
-import { RefObject } from "react";
 import { DeferState } from "../types/useDefer.types";
+import { Trigger } from "../../core/types/trigger.types";
 
 export interface UseDeferResult {
-  ref: RefObject<HTMLElement | null>;
+  ref: React.MutableRefObject<HTMLElement | null>;
   state: DeferState;
+  triggered: boolean;
+  retry: () => void;
+}
+
+export interface UseDeferOptions {
+  on?: Trigger | Trigger[];
 }

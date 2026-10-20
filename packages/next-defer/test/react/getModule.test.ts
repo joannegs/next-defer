@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { getModule, type ModuleCache } from '../../src/react/getModule';
+import { getModule } from '../../src/react/getModule';
+import type { ModuleCache } from '../../src/react/interfaces/module.interface';
 
 describe('getModule', () => {
   it('calls load on the first call', async () => {
