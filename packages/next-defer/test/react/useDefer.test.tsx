@@ -360,8 +360,6 @@ describe('useDefer', () => {
       fireEvent.click(getByTestId('target'));
       await flushMicrotasks();
 
-      // Resolved well within the 200ms loadingDelay window, so "loading" was
-      // never shown — the 1000ms minimum must not hold this up.
       expect(getByTestId('target').textContent).toBe('visible');
     });
 
@@ -476,10 +474,6 @@ describe('useDefer', () => {
         </StrictMode>,
       );
 
-      // StrictMode mounts, runs effects, immediately simulates an unmount
-      // (must clear the timer scheduled during that first pass), then
-      // mounts again for real. If cleanup didn't run, no clearTimeout call
-      // would be observed here.
       expect(clearTimeoutSpy).toHaveBeenCalled();
 
       act(() => {

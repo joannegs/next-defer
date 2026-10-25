@@ -7,14 +7,15 @@ import { getModule } from './getModule';
 import type { DeferState, LoadResult } from './types/useDefer.types';
 import type { UseDeferOptions, UseDeferResult } from './interfaces/useDefer.interface';
 
-export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {}): UseDeferResult {
+export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {}): UseDeferResult<T> {
   const { on, prefetch, loadingDelay, minPlaceholderTime, minLoadingTime, onStateChange } = options;
   const ref = useRef<HTMLElement | null>(null);
   const [triggered, setTriggered] = useState(false);
   const [result, setResult] = useState<LoadResult>('pending');
+  const [module, setModule] = useState<T | null>(null);
   const [loadingVisible, setLoadingVisible] = useState(false);
-  const [placeholderMinElapsed, setPlaceholderMinElapsed] = useState(minPlaceholderTime === undefined);
-  const [loadingMinElapsed, setLoadingMinElapsed] = useState(minLoadingTime === undefined);
+  const [placeholderMinIsOver, setPlaceholderMinIsOver] = useState(minPlaceholderTime === undefined);
+  const [loadingMinIsOver, setLoadingMinIsOver] = useState(minLoadingTime === undefined);
   const [attempt, setAttempt] = useState(0);
   const moduleCache = useRef<Promise<T> | null>(null);
 
@@ -50,7 +51,10 @@ export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {
     }
 
     getModule(moduleCache, load).then(
-      () => setResult('visible'),
+      (resolved) => {
+        setModule(resolved);
+        setResult('visible');
+      },
       () => setResult('error'),
     );
   }, [triggered, load, attempt]);
@@ -69,7 +73,7 @@ export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {
       return;
     }
 
-    const id = setTimeout(() => setPlaceholderMinElapsed(true), parseDuration(minPlaceholderTime));
+    const id = setTimeout(() => setPlaceholderMinIsOver(true), parseDuration(minPlaceholderTime));
     return () => clearTimeout(id);
   }, [minPlaceholderTime]);
 
@@ -79,7 +83,7 @@ export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {
     }
 
     const offset = loadingDelay === undefined ? 0 : parseDuration(loadingDelay);
-    const id = setTimeout(() => setLoadingMinElapsed(true), offset + parseDuration(minLoadingTime));
+    const id = setTimeout(() => setLoadingMinIsOver(true), offset + parseDuration(minLoadingTime));
     return () => clearTimeout(id);
   }, [triggered, loadingDelay, minLoadingTime, attempt]);
 
@@ -90,15 +94,16 @@ export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {
 
     moduleCache.current = null;
     setResult('pending');
+    setModule(null);
     setLoadingVisible(false);
-    setLoadingMinElapsed(minLoadingTime === undefined);
+    setLoadingMinIsOver(minLoadingTime === undefined);
     setAttempt((previous) => previous + 1);
   }
 
   const isLoadingNow = loadingDelay === undefined || loadingVisible;
-  const resultReady = result !== 'pending' && (!isLoadingNow || loadingMinElapsed);
+  const resultReady = result !== 'pending' && (!isLoadingNow || loadingMinIsOver);
 
-  const state: DeferState = !placeholderMinElapsed
+  const state: DeferState = !placeholderMinIsOver
     ? 'placeholder'
     : !triggered
       ? 'placeholder'
@@ -118,5 +123,5 @@ export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {
     onStateChangeRef.current?.(state);
   }, [state]);
 
-  return { ref, state, triggered, retry };
+  return { ref, state, triggered, retry, module };
 }
