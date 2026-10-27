@@ -8,7 +8,9 @@ export default defineConfig({
     baseURL: 'http://localhost:3000',
   },
   webServer: {
-    command: 'pnpm dev',
+    // production build: dev mode (Turbopack) doesn't split dynamic import() chunks
+    // the same way, which would make RNF01 pass for the wrong reason.
+    command: 'pnpm build && pnpm start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
   },
