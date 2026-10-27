@@ -52,12 +52,12 @@ export default function Page() {
         />
       </Section>
 
-      <Section title="interaction" description="Loads when clicked.">
+      <Section title="interaction" description="Loads when clicked (or focused + Enter).">
         <Defer
           load={() => import('../components/heavy/HeavyCard')}
           on="interaction"
           props={{ label: 'interaction' }}
-          placeholder={placeholder('click here to load')}
+          placeholder={<button style={box}>click here to load</button>}
           loading={loading}
         />
       </Section>

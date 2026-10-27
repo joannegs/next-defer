@@ -1,0 +1,25 @@
+name: Rerun CI
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  actions: write
+  pull-requests: read
+
+jobs:
+  rerun:
+    if: >
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, 'rerunCI') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rerun CI workflow for this PR's latest commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          HEAD_SHA=$(gh pr view "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --json headRefOid -q .headRefOid)
+          RUN_ID=$(gh run list --repo "${{ github.repository }}" --workflow=ci.yml --commit "$HEAD_SHA" --json databaseId --limit 1 -q '.[0].databaseId')
+          gh run rerun "$RUN_ID" --repo "${{ github.repository }}"

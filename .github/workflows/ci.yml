@@ -30,8 +30,17 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Test
+        run: pnpm test
+
       - name: Build
         run: pnpm build
+
+      - name: Install Playwright browsers
+        run: pnpm --filter demo exec playwright install --with-deps chromium
+
+      - name: E2E tests
+        run: pnpm --filter demo run e2e
 
       - name: Check packaging (size-limit, publint, arethetypeswrong)
         run: pnpm checkpack
