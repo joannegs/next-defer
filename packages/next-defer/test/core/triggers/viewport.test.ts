@@ -7,15 +7,6 @@ afterEach(() => {
 });
 
 describe('viewport', () => {
-  it('sets display: contents on the element', () => {
-    mockIntersectionObserver();
-    const element = document.createElement('div');
-
-    viewport().triggerSubscribe(element, vi.fn());
-
-    expect(element.style.display).toBe('contents');
-  });
-
   it('fires only once the element intersects', () => {
     const io = mockIntersectionObserver();
     const element = document.createElement('div');

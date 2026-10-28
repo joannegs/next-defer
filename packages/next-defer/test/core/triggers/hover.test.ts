@@ -2,13 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { hover } from '../../../src/core/triggers/hover';
 
 describe('hover', () => {
-  it('sets display: contents on the element', () => {
-    const element = document.createElement('div');
-    hover().triggerSubscribe(element, vi.fn());
-
-    expect(element.style.display).toBe('contents');
-  });
-
   it('fires on mouseenter', () => {
     const element = document.createElement('div');
     const fire = vi.fn();

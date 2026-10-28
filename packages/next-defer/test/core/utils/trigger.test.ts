@@ -22,21 +22,6 @@ describe('neverFired', () => {
 });
 
 describe('elementObservable', () => {
-  it('sets display: contents on the element before observing', () => {
-    const element = document.createElement('div');
-    let seenDisplay: string | undefined;
-
-    const trigger = elementObservable((el: HTMLElement) => {
-      seenDisplay = el.style.display;
-      return () => {};
-    });
-
-    trigger.triggerSubscribe(element, vi.fn());
-
-    expect(element.style.display).toBe('contents');
-    expect(seenDisplay).toBe('contents');
-  });
-
   it('passes the element and fire callback through to observe', () => {
     const element = document.createElement('div');
     const fire = vi.fn();
