@@ -19,8 +19,6 @@ export function Defer<P extends object = object>({
       style={{ display: 'contents' }}
       aria-busy={state === 'loading' || undefined}
     >
-      {/* display: contents above has no layout box of its own, so the
-          "viewport" trigger falls back to observing this 1x1 sentinel. */}
       <span
         ref={viewportRef as RefObject<HTMLSpanElement>}
         aria-hidden="true"

@@ -21,9 +21,6 @@ function armSinglesTrigger(
     case 'timer':
       return timer(trigger.ms).triggerSubscribe(element, fire);
     case 'viewport': {
-      // the wrapper itself is `display: contents` (no layout box), so
-      // IntersectionObserver can never see it intersect — fall back to a
-      // sentinel element that does have a box when no custom ref is given.
       const target = resolveElement(viewportFallback, trigger.ref);
       return target ? domTriggerRegistry.viewport(trigger).triggerSubscribe(target, fire) : () => {};
     }

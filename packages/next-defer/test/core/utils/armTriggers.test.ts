@@ -199,9 +199,6 @@ describe('armTriggers', () => {
     });
 
     it('observes the viewport fallback instead of the wrapper when no ref is given', () => {
-      // regression test: the wrapper is `display: contents` in real usage and
-      // has no layout box, so IntersectionObserver would never see it as
-      // intersecting — the viewport fallback is the element that actually gets observed.
       const io = mockIntersectionObserver();
       const wrapper = document.createElement('div');
       const viewportFallback = document.createElement('div');
