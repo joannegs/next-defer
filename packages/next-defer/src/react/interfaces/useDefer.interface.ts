@@ -4,6 +4,7 @@ import { Duration } from "../../core/types/duration.types";
 
 export interface UseDeferResult<T> {
   ref: React.MutableRefObject<HTMLElement | null>;
+  viewportRef: React.MutableRefObject<HTMLElement | null>;
   state: DeferState;
   triggered: boolean;
   retry: () => void;

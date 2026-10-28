@@ -10,6 +10,7 @@ import type { UseDeferOptions, UseDeferResult } from './interfaces/useDefer.inte
 export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {}): UseDeferResult<T> {
   const { on, prefetch, loadingDelay, minPlaceholderTime, minLoadingTime, onStateChange } = options;
   const ref = useRef<HTMLElement | null>(null);
+  const viewportRef = useRef<HTMLElement | null>(null);
   const [triggered, setTriggered] = useState(false);
   const [result, setResult] = useState<LoadResult>('pending');
   const [module, setModule] = useState<T | null>(null);
@@ -32,7 +33,7 @@ export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {
       return;
     }
 
-    return armTriggers(ref.current, normalizedList, () => setTriggered(true));
+    return armTriggers(ref.current, viewportRef.current, normalizedList, () => setTriggered(true));
   }, [normalizedList]);
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {
       return;
     }
 
-    return armTriggers(ref.current, normalizedPrefetchList, () => {
+    return armTriggers(ref.current, viewportRef.current, normalizedPrefetchList, () => {
       getModule(moduleCache, load).catch(() => {});
     });
   }, [normalizedPrefetchList, load]);
@@ -123,5 +124,5 @@ export function useDefer<T>(load: () => Promise<T>, options: UseDeferOptions = {
     onStateChangeRef.current?.(state);
   }, [state]);
 
-  return { ref, state, triggered, retry, module };
+  return { ref, viewportRef, state, triggered, retry, module };
 }

@@ -16,7 +16,7 @@ describe('armTriggers', () => {
       vi.stubGlobal('cancelIdleCallback', undefined);
 
       const fire = vi.fn();
-      armTriggers(document.createElement('div'), [{ kind: 'idle' }], fire);
+      armTriggers(document.createElement('div'), null, [{ kind: 'idle' }], fire);
 
       vi.advanceTimersByTime(1);
       expect(fire).toHaveBeenCalledOnce();
@@ -26,7 +26,7 @@ describe('armTriggers', () => {
       vi.useFakeTimers();
 
       const fire = vi.fn();
-      armTriggers(document.createElement('div'), [{ kind: 'timer', ms: 1000 }], fire);
+      armTriggers(document.createElement('div'), null, [{ kind: 'timer', ms: 1000 }], fire);
 
       vi.advanceTimersByTime(999);
       expect(fire).not.toHaveBeenCalled();
@@ -35,13 +35,14 @@ describe('armTriggers', () => {
       expect(fire).toHaveBeenCalledOnce();
     });
 
-    it('dispatches "viewport" to the viewport trigger', () => {
+    it('dispatches "viewport" to the viewport trigger, observing the viewport fallback', () => {
       const io = mockIntersectionObserver();
       const element = document.createElement('div');
+      const viewportFallback = document.createElement('div');
       const fire = vi.fn();
 
-      armTriggers(element, [{ kind: 'viewport', rootMargin: '200px' }], fire);
-      io.trigger(element, true);
+      armTriggers(element, viewportFallback, [{ kind: 'viewport', rootMargin: '200px' }], fire);
+      io.trigger(viewportFallback, true);
 
       expect(fire).toHaveBeenCalledOnce();
       expect(io.instances[0]!.options).toEqual({ rootMargin: '200px' });
@@ -51,7 +52,7 @@ describe('armTriggers', () => {
       const element = document.createElement('div');
       const fire = vi.fn();
 
-      armTriggers(element, [{ kind: 'interaction' }], fire);
+      armTriggers(element, null, [{ kind: 'interaction' }], fire);
       element.dispatchEvent(new Event('click'));
 
       expect(fire).toHaveBeenCalledOnce();
@@ -61,7 +62,7 @@ describe('armTriggers', () => {
       const element = document.createElement('div');
       const fire = vi.fn();
 
-      armTriggers(element, [{ kind: 'hover' }], fire);
+      armTriggers(element, null, [{ kind: 'hover' }], fire);
       element.dispatchEvent(new Event('mouseenter'));
 
       expect(fire).toHaveBeenCalledOnce();
@@ -69,14 +70,14 @@ describe('armTriggers', () => {
 
     it('fires immediately when "when" is true', () => {
       const fire = vi.fn();
-      armTriggers(document.createElement('div'), [{ kind: 'when', value: true }], fire);
+      armTriggers(document.createElement('div'), null, [{ kind: 'when', value: true }], fire);
 
       expect(fire).toHaveBeenCalledOnce();
     });
 
     it('does not fire when "when" is false', () => {
       const fire = vi.fn();
-      armTriggers(document.createElement('div'), [{ kind: 'when', value: false }], fire);
+      armTriggers(document.createElement('div'), null, [{ kind: 'when', value: false }], fire);
 
       expect(fire).not.toHaveBeenCalled();
     });
@@ -85,7 +86,7 @@ describe('armTriggers', () => {
       vi.useFakeTimers();
 
       const fire = vi.fn();
-      const cleanup = armTriggers(document.createElement('div'), [{ kind: 'timer', ms: 1000 }], fire);
+      const cleanup = armTriggers(document.createElement('div'), null, [{ kind: 'timer', ms: 1000 }], fire);
 
       cleanup();
       vi.advanceTimersByTime(1000);
@@ -101,6 +102,7 @@ describe('armTriggers', () => {
       const fire = vi.fn();
       armTriggers(
         document.createElement('div'),
+        null,
         [{ kind: 'timer', ms: 1000 }, { kind: 'timer', ms: 2000 }],
         fire,
       );
@@ -118,6 +120,7 @@ describe('armTriggers', () => {
       const fire = vi.fn();
       armTriggers(
         document.createElement('div'),
+        null,
         [{ kind: 'timer', ms: 1000 }, { kind: 'timer', ms: 1000 }],
         fire,
       );
@@ -132,6 +135,7 @@ describe('armTriggers', () => {
       const fire = vi.fn();
       const cleanup = armTriggers(
         document.createElement('div'),
+        null,
         [{ kind: 'timer', ms: 1000 }, { kind: 'timer', ms: 2000 }],
         fire,
       );
@@ -150,6 +154,7 @@ describe('armTriggers', () => {
       const fire = vi.fn();
       armTriggers(
         document.createElement('div'),
+        null,
         [{ kind: 'when', value: true }, { kind: 'timer', ms: 1000 }],
         fire,
       );
@@ -166,6 +171,7 @@ describe('armTriggers', () => {
       const fire = vi.fn();
       armTriggers(
         document.createElement('div'),
+        null,
         [{ kind: 'when', value: false }, { kind: 'timer', ms: 1000 }],
         fire,
       );
@@ -183,12 +189,30 @@ describe('armTriggers', () => {
       const ref: ElementRef = { current: other };
       const fire = vi.fn();
 
-      armTriggers(wrapper, [{ kind: 'viewport', ref }], fire);
+      armTriggers(wrapper, null, [{ kind: 'viewport', ref }], fire);
 
       io.trigger(wrapper, true);
       expect(fire).not.toHaveBeenCalled();
 
       io.trigger(other, true);
+      expect(fire).toHaveBeenCalledOnce();
+    });
+
+    it('observes the viewport fallback instead of the wrapper when no ref is given', () => {
+      // regression test: the wrapper is `display: contents` in real usage and
+      // has no layout box, so IntersectionObserver would never see it as
+      // intersecting — the viewport fallback is the element that actually gets observed.
+      const io = mockIntersectionObserver();
+      const wrapper = document.createElement('div');
+      const viewportFallback = document.createElement('div');
+      const fire = vi.fn();
+
+      armTriggers(wrapper, viewportFallback, [{ kind: 'viewport' }], fire);
+
+      io.trigger(wrapper, true);
+      expect(fire).not.toHaveBeenCalled();
+
+      io.trigger(viewportFallback, true);
       expect(fire).toHaveBeenCalledOnce();
     });
 
@@ -198,7 +222,7 @@ describe('armTriggers', () => {
       const ref: ElementRef = { current: other };
       const fire = vi.fn();
 
-      armTriggers(wrapper, [{ kind: 'interaction', ref }], fire);
+      armTriggers(wrapper, null, [{ kind: 'interaction', ref }], fire);
 
       wrapper.dispatchEvent(new Event('click'));
       expect(fire).not.toHaveBeenCalled();
@@ -211,7 +235,7 @@ describe('armTriggers', () => {
       const element = document.createElement('div');
       const fire = vi.fn();
 
-      armTriggers(element, [{ kind: 'hover' }], fire);
+      armTriggers(element, null, [{ kind: 'hover' }], fire);
       element.dispatchEvent(new Event('mouseenter'));
 
       expect(fire).toHaveBeenCalledOnce();
@@ -222,11 +246,21 @@ describe('armTriggers', () => {
       const ref: ElementRef = { current: null };
       const fire = vi.fn();
 
-      const cleanup = armTriggers(element, [{ kind: 'hover', ref }], fire);
+      const cleanup = armTriggers(element, null, [{ kind: 'hover', ref }], fire);
 
       element.dispatchEvent(new Event('mouseenter'));
       expect(fire).not.toHaveBeenCalled();
       expect(() => cleanup()).not.toThrow();
+    });
+
+    it('arms nothing for viewport when no ref is given and the fallback is null', () => {
+      const element = document.createElement('div');
+      const fire = vi.fn();
+
+      const cleanup = armTriggers(element, null, [{ kind: 'viewport' }], fire);
+
+      expect(() => cleanup()).not.toThrow();
+      expect(fire).not.toHaveBeenCalled();
     });
   });
 });

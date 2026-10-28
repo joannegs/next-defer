@@ -178,10 +178,11 @@ describe('Defer', () => {
     await waitFor(() => expect(wrapper.getAttribute('aria-busy')).toBeNull());
   });
 
-  it('renders the wrapper with no extra content when no placeholder is given', () => {
+  it('renders only the hidden viewport sentinel when no placeholder is given', () => {
     const { container } = render(<Defer load={load} on="interaction" />);
 
     const wrapper = container.firstElementChild as HTMLElement;
-    expect(wrapper.childNodes.length).toBe(0);
+    expect(wrapper.childNodes.length).toBe(1);
+    expect(wrapper.textContent).toBe('');
   });
 });

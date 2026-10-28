@@ -5,8 +5,6 @@ export function elementObservable(
 ): TriggerInterface {
   return {
     triggerSubscribe(element, fire) {
-      // display: contents so the element won't generate a box, but its children will still be rendered 
-      element.style.display = 'contents';
       return observe(element, fire);
     },
   };
